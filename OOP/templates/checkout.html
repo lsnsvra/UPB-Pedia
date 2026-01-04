@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="checkout-container">
+        <!-- Checkout Header -->
+        <div class="checkout-header" style="text-align: center; margin-bottom: 30px;">
+            <h1><i class="fas fa-check-circle" style="color: #42b549;"></i> Checkout</h1>
+            <p style="color: #666;">Review your order before confirming</p>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="checkout-section">
+            <h2><i class="fas fa-clipboard-list"></i> Order Summary</h2>
+            
+            <div class="order-items">
+                {% for item in cart_items %}
+                <div class="order-summary-item">
+                    <div>
+                        <strong>{{ item.title[:40] }}{% if item.title|length > 40 %}...{% endif %}</strong>
+                        <div style="font-size: 0.9rem; color: #666;">
+                            Quantity: {{ item.quantity }} × ${{ "%.2f"|format(item.price) }}
+                        </div>
+                    </div>
+                    <div style="font-weight: bold;">
+                        ${{ "%.2f"|format(item.subtotal) }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Shipping Information -->
+        <div class="checkout-section">
+            <h2><i class="fas fa-truck"></i> Shipping Information</h2>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                <p><strong>Shipping Method:</strong> Standard Shipping (Free)</p>
+                <p><strong>Delivery Time:</strong> 3-5 business days</p>
+                <p><strong>Note:</strong> This is a demo checkout. No actual order will be placed.</p>
+            </div>
+        </div>
+
+        <!-- Payment Information -->
+        <div class="checkout-section">
+            <h2><i class="fas fa-credit-card"></i> Payment Information</h2>
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                <p><strong>Payment Method:</strong> Demo Payment</p>
+                <p><strong>Note:</strong> No real payment required for this demo.</p>
+            </div>
+        </div>
+
+        <!-- Order Total -->
+        <div class="checkout-section" style="background: #e8f5e9; padding: 25px; border-radius: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin: 0;">Total Amount</h3>
+                    <p style="margin: 5px 0 0 0; color: #666;">Including all taxes and shipping</p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #42b549;">
+                        ${{ "%.2f"|format(total_price) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checkout Actions -->
+        <div class="checkout-actions">
+            <a href="{{ url_for('cart') }}" class="btn-back-cart">
+                <i class="fas fa-arrow-left"></i> Back to Cart
+            </a>
+            
+            <!-- Complete Order Form -->
+            <form action="{{ url_for('complete_order') }}" method="POST">
+                <button type="submit" class="btn-confirm-order">
+                    <i class="fas fa-check"></i> Confirm Order
+                </button>
+            </form>
+        </div>
+
+        <!-- Demo Note -->
+        <div style="margin-top: 30px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+            <p style="margin: 0; color: #856404;">
+                <i class="fas fa-info-circle"></i>
+                <strong>Demo Note:</strong> This is a simulation. No actual order will be placed and no payment will be processed.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

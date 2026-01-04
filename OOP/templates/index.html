@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Home - All Products{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Filters and Sort Section -->
+    <div class="filter-section">
+        <div class="filter-container">
+            <!-- Category Filter -->
+            <div class="filter-group">
+                <label for="category-filter"><i class="fas fa-filter"></i> Category:</label>
+                <form method="GET" style="display: inline;">
+                    <select name="category" id="category-filter" onchange="this.form.submit()">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category }}" 
+                                {% if selected_category == category %}selected{% endif %}>
+                            {{ category|title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <!-- Keep search query if exists -->
+                    {% if request.args.get('search') %}
+                    <input type="hidden" name="search" value="{{ request.args.get('search') }}">
+                    {% endif %}
+                    {% if request.args.get('sort') %}
+                    <input type="hidden" name="sort" value="{{ request.args.get('sort') }}">
+                    {% endif %}
+                </form>
+            </div>
+
+            <!-- Sort Options -->
+            <div class="filter-group">
+                <label for="sort-filter"><i class="fas fa-sort-amount-down"></i> Sort:</label>
+                <form method="GET" style="display: inline;">
+                    <select name="sort" id="sort-filter" onchange="this.form.submit()">
+                        <option value="">Default</option>
+                        <option value="price_asc" 
+                                {% if request.args.get('sort') == 'price_asc' %}selected{% endif %}>
+                            Price: Low to High
+                        </option>
+                        <option value="price_desc"
+                                {% if request.args.get('sort') == 'price_desc' %}selected{% endif %}>
+                            Price: High to Low
+                        </option>
+                    </select>
+                    <!-- Keep search query if exists -->
+                    {% if request.args.get('search') %}
+                    <input type="hidden" name="search" value="{{ request.args.get('search') }}">
+                    {% endif %}
+                    {% if request.args.get('category') %}
+                    <input type="hidden" name="category" value="{{ request.args.get('category') }}">
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid">
+        {% if products %}
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="{{ product.image }}" alt="{{ product.title }}">
+                </div>
+                <div class="product-info">
+                    <h3 class="product-title">{{ product.title[:50] }}{% if product.title|length > 50 %}...{% endif %}</h3>
+                    <div class="product-category">
+                        <i class="fas fa-tag"></i> {{ product.category|title }}
+                    </div>
+                    <div class="product-price">
+                        <strong>${{ "%.2f"|format(product.price) }}</strong>
+                    </div>
+                    <div class="product-rating">
+                        <i class="fas fa-star" style="color: #ffd700;"></i>
+                        {{ product.rating.rate }} ({{ product.rating.count }} reviews)
+                    </div>
+                    <div class="product-actions">
+                        <a href="{{ url_for('product_detail', id=product.id) }}" class="btn-view">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="POST">
+                            <button type="submit" class="btn-add-cart">
+                                <i class="fas fa-cart-plus"></i> Add to Cart
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-products">
+                <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; color: #ddd;"></i>
+                <h2>No products found</h2>
+                <p>Try adjusting your search or filter criteria</p>
+                <a href="{{ url_for('index') }}" class="btn-primary">
+                    <i class="fas fa-store"></i> Browse All Products
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="cart-container">
+        <!-- Cart Header -->
+        <div class="cart-header">
+            <h1><i class="fas fa-shopping-cart"></i> Your Shopping Cart</h1>
+            <span class="cart-count">{{ cart_count }} item(s)</span>
+        </div>
+
+        {% if cart_items %}
+        <!-- Cart Items -->
+        <form action="{{ url_for('update_cart') }}" method="POST">
+            <div class="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item">
+                    <!-- Product Image -->
+                    <div class="cart-item-image">
+                        <img src="{{ item.image }}" alt="{{ item.title }}">
+                    </div>
+                    
+                    <!-- Product Title -->
+                    <div class="cart-item-title">
+                        <a href="{{ url_for('product_detail', id=item.id) }}" style="color: #333; text-decoration: none;">
+                            {{ item.title[:50] }}{% if item.title|length > 50 %}...{% endif %}
+                        </a>
+                    </div>
+                    
+                    <!-- Product Price -->
+                    <div class="cart-item-price">
+                        ${{ "%.2f"|format(item.price) }}
+                    </div>
+                    
+                    <!-- Quantity -->
+                    <div class="quantity-form">
+                        <input type="number" 
+                               name="quantity_{{ item.id }}" 
+                               value="{{ item.quantity }}" 
+                               min="1" 
+                               max="10" 
+                               class="quantity-input">
+                    </div>
+                    
+                    <!-- Subtotal & Remove -->
+                    <div style="text-align: center;">
+                        <div style="font-weight: bold; color: #42b549; margin-bottom: 10px;">
+                            ${{ "%.2f"|format(item.subtotal) }}
+                        </div>
+                        <button type="submit" name="remove" value="{{ item.id }}" class="btn-remove">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Cart Actions -->
+            <div class="cart-actions">
+                <a href="{{ url_for('index') }}" class="btn-continue">
+                    <i class="fas fa-arrow-left"></i> Continue Shopping
+                </a>
+                
+                <div style="display: flex; gap: 15px;">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-sync-alt"></i> Update Cart
+                    </button>
+                    
+                    <a href="{{ url_for('checkout') }}" class="btn-checkout-page">
+                        <i class="fas fa-check"></i> Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <!-- Cart Summary -->
+        <div class="cart-summary">
+            <h3>Order Summary</h3>
+            <div class="summary-row">
+                <span>Subtotal ({{ cart_count }} items):</span>
+                <span>${{ "%.2f"|format(total_price) }}</span>
+            </div>
+            <div class="summary-row">
+                <span>Shipping:</span>
+                <span>$0.00</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Total:</span>
+                <span>${{ "%.2f"|format(total_price) }}</span>
+            </div>
+            
+            <!-- Clear Cart Form -->
+            <form action="{{ url_for('clear_cart') }}" method="POST" style="margin-top: 20px;">
+                <button type="submit" class="btn-clear-cart">
+                    <i class="fas fa-trash-alt"></i> Clear Cart
+                </button>
+            </form>
+        </div>
+
+        {% else %}
+        <!-- Empty Cart Message -->
+        <div class="empty-cart">
+            <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ddd;"></i>
+            <h2>Your cart is empty</h2>
+            <p>Add some products to your cart first</p>
+            <a href="{{ url_for('index') }}" class="btn-primary">
+                <i class="fas fa-store"></i> Start Shopping
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
