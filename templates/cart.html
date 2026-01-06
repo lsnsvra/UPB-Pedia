@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - Tokopedia Mini{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="cart-container">
+        <!-- Cart Header -->
+        <div class="cart-header">
+            <h1><i class="fas fa-shopping-cart"></i> Your Shopping Cart</h1>
+            {% if cart_items %}
+            <div class="cart-header-info">
+                <span class="cart-count">{{ cart_count }} item(s)</span>
+                <span class="cart-total-mini">
+                    Total: Rp {{ "{:,.0f}".format(total_price_idr) }}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if cart_items %}
+        <!-- Cart Items -->
+        <form action="{{ url_for('update_cart') }}" method="POST">
+            <div class="cart-items-container">
+                {% for item in cart_items %}
+                <div class="cart-item">
+                    <!-- Product Image -->
+                    <div class="cart-item-image">
+                        <img src="{{ item.image }}" alt="{{ item.title }}" 
+                             onclick="window.location.href='{{ url_for('product_detail', id=item.id) }}'">
+                    </div>
+                    
+                    <!-- Product Details -->
+                    <div class="cart-item-details">
+                        <a href="{{ url_for('product_detail', id=item.id) }}" class="cart-item-title">
+                            {{ item.title }}
+                        </a>
+                        <div class="cart-item-price">
+                            <span class="price-idr">Rp {{ "{:,.0f}".format(item.price_idr) }}</span>
+                            <span class="price-usd">(${{ "%.2f"|format(item.price_usd) }})</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Quantity Controls -->
+                    <div class="cart-item-quantity">
+                        <div class="quantity-control">
+                            <button type="button" class="qty-btn minus" onclick="changeQuantity('{{ item.id }}', -1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" 
+                                   name="quantity_{{ item.id }}" 
+                                   value="{{ item.quantity }}" 
+                                   min="1" 
+                                   max="10" 
+                                   class="qty-input"
+                                   id="qty-{{ item.id }}">
+                            <button type="button" class="qty-btn plus" onclick="changeQuantity('{{ item.id }}', 1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <button type="submit" name="remove" value="{{ item.id }}" class="remove-btn">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                    
+                    <!-- Subtotal -->
+                    <div class="cart-item-subtotal">
+                        <span class="subtotal-label">Subtotal:</span>
+                        <span class="subtotal-value">Rp {{ "{:,.0f}".format(item.subtotal_idr) }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Cart Summary -->
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Subtotal ({{ cart_count }} items):</span>
+                    <span>Rp {{ "{:,.0f}".format(total_price_idr) }}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping:</span>
+                    <span class="free-shipping">FREE</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax (10%):</span>
+                    <span>Rp {{ "{:,.0f}".format(total_price_idr * 0.1) }}</span>
+                </div>
+                <div class="summary-total">
+                    <span>Total:</span>
+                    <span class="total-value">Rp {{ "{:,.0f}".format(total_price_idr * 1.1) }}</span>
+                </div>
+            </div>
+
+            <!-- Cart Actions -->
+            <div class="cart-actions">
+                <a href="{{ url_for('index') }}" class="btn-continue">
+                    <i class="fas fa-arrow-left"></i> Continue Shopping
+                </a>
+                
+                <div class="cart-action-buttons">
+                    <button type="submit" class="btn-update">
+                        <i class="fas fa-sync-alt"></i> Update Cart
+                    </button>
+                    
+                    <form action="{{ url_for('clear_cart') }}" method="POST" style="display: inline;">
+                        <button type="submit" class="btn-clear">
+                            <i class="fas fa-trash-alt"></i> Clear Cart
+                        </button>
+                    </form>
+                    
+                    <a href="{{ url_for('checkout') }}" class="btn-checkout">
+                        <i class="fas fa-lock"></i> Proceed to Checkout
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        {% else %}
+        <!-- Empty Cart -->
+        <div class="empty-cart">
+            <div class="empty-cart-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h2>Your cart is empty</h2>
+            <p>Add some products to get started!</p>
+            <a href="{{ url_for('index') }}" class="btn-primary">
+                <i class="fas fa-store"></i> Start Shopping
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .cart-container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+    }
+    
+    .cart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .cart-header h1 {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        color: #333;
+    }
+    
+    .cart-header-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+    }
+    
+    .cart-count {
+        font-size: 1.1rem;
+        color: #666;
+    }
+    
+    .cart-total-mini {
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #42b549;
+    }
+    
+    /* Cart Items */
+    .cart-items-container {
+        margin-bottom: 30px;
+    }
+    
+    .cart-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto auto;
+        gap: 20px;
+        padding: 20px;
+        border-bottom: 1px solid #f0f0f0;
+        align-items: center;
+    }
+    
+    .cart-item:last-child {
+        border-bottom: none;
+    }
+    
+    .cart-item-image img {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        cursor: pointer;
+        transition: transform 0.3s;
+    }
+    
+    .cart-item-image img:hover {
+        transform: scale(1.05);
+    }
+    
+    .cart-item-details {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .cart-item-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .cart-item-title:hover {
+        color: #42b549;
+    }
+    
+    .cart-item-price {
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+    }
+    
+    .price-idr {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #42b549;
+    }
+    
+    .price-usd {
+        font-size: 0.9rem;
+        color: #888;
+    }
+    
+    /* Quantity Controls */
+    .cart-item-quantity {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .quantity-control {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .qty-btn {
+        width: 35px;
+        height: 35px;
+        border: 1px solid #ddd;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .qty-btn:hover {
+        background: #f0f0f0;
+        border-color: #42b549;
+    }
+    
+    .qty-input {
+        width: 50px;
+        height: 35px;
+        text-align: center;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+    }
+    
+    .remove-btn {
+        padding: 8px 15px;
+        background: #ff6b6b;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .remove-btn:hover {
+        background: #ff5252;
+    }
+    
+    /* Subtotal */
+    .cart-item-subtotal {
+        text-align: right;
+        min-width: 120px;
+    }
+    
+    .subtotal-label {
+        display: block;
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    
+    .subtotal-value {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    /* Cart Summary */
+    .cart-summary {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        color: #666;
+    }
+    
+    .free-shipping {
+        color: #42b549;
+        font-weight: bold;
+    }
+    
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 2px solid #42b549;
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .total-value {
+        color: #42b549;
+    }
+    
+    /* Cart Actions */
+    .cart-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .cart-action-buttons {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .btn-continue, .btn-update, .btn-clear, .btn-checkout {
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .btn-continue {
+        background: #f0f0f0;
+        color: #333;
+        border: none;
+    }
+    
+    .btn-continue:hover {
+        background: #e0e0e0;
+    }
+    
+    .btn-update {
+        background: #42b549;
+        color: white;
+        border: none;
+    }
+    
+    .btn-update:hover {
+        background: #3aa041;
+    }
+    
+    .btn-clear {
+        background: #ff6b6b;
+        color: white;
+        border: none;
+    }
+    
+    .btn-clear:hover {
+        background: #ff5252;
+    }
+    
+    .btn-checkout {
+        background: linear-gradient(135deg, #42b549 0%, #2e7d32 100%);
+        color: white;
+        border: none;
+    }
+    
+    .btn-checkout:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(66, 181, 73, 0.3);
+    }
+    
+    /* Empty Cart */
+    .empty-cart {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .empty-cart-icon {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+    
+    .empty-cart h2 {
+        color: #666;
+        margin-bottom: 10px;
+    }
+    
+    .empty-cart p {
+        color: #888;
+        margin-bottom: 25px;
+    }
+    
+    .btn-primary {
+        background: #42b549;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-primary:hover {
+        background: #3aa041;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .cart-item {
+            grid-template-columns: 1fr;
+            text-align: center;
+            gap: 15px;
+        }
+        
+        .cart-item-quantity {
+            order: 3;
+        }
+        
+        .cart-item-subtotal {
+            order: 4;
+            text-align: center;
+        }
+        
+        .cart-actions {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .cart-action-buttons {
+            flex-direction: column;
+            width: 100%;
+        }
+        
+        .btn-continue, .btn-update, .btn-clear, .btn-checkout {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    // Change quantity with buttons
+    function changeQuantity(productId, change) {
+        const input = document.getElementById(`qty-${productId}`);
+        let currentValue = parseInt(input.value);
+        let newValue = currentValue + change;
+        
+        if (newValue < 1) newValue = 1;
+        if (newValue > 10) newValue = 10;
+        
+        input.value = newValue;
+    }
+    
+    // Auto-submit form when quantity changes
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityInputs = document.querySelectorAll('.qty-input');
+        quantityInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                this.form.submit();
+            });
+        });
+    });
+</script>
+{% endblock %}
