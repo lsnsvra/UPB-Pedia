@@ -1,856 +1,900 @@
-{% extends "base.html" %}
-
-{% block title %}Checkout - Complete Your Order{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Checkout - Complete Your Order{%
+endblock %} {% block content %}
 <div class="container">
-    <!-- Checkout Steps -->
-    <div class="checkout-steps">
-        <div class="step active">
-            <div class="step-number">1</div>
-            <div class="step-text">Cart</div>
-        </div>
-        <div class="step active">
-            <div class="step-number">2</div>
-            <div class="step-text">Checkout</div>
-        </div>
-        <div class="step">
-            <div class="step-number">3</div>
-            <div class="step-text">Payment</div>
-        </div>
-        <div class="step">
-            <div class="step-number">4</div>
-            <div class="step-text">Confirmation</div>
-        </div>
+  <!-- Checkout Steps -->
+  <div class="checkout-steps">
+    <div class="step active">
+      <div class="step-number">1</div>
+      <div class="step-text">Cart</div>
+    </div>
+    <div class="step active">
+      <div class="step-number">2</div>
+      <div class="step-text">Checkout</div>
+    </div>
+    <div class="step">
+      <div class="step-number">3</div>
+      <div class="step-text">Payment</div>
+    </div>
+    <div class="step">
+      <div class="step-number">4</div>
+      <div class="step-text">Confirmation</div>
+    </div>
+  </div>
+
+  <!-- Checkout Content -->
+  <div class="checkout-content">
+    <!-- Left Column: Customer Info & Payment -->
+    <div class="checkout-left">
+      <!-- Customer Information Form -->
+      <div class="customer-form-card">
+        <h2><i class="fas fa-user"></i> Customer Information</h2>
+        <form
+          action="{{ url_for('checkout_details') }}"
+          method="POST"
+          id="checkoutForm"
+        >
+          <div class="form-row">
+            <div class="form-group">
+              <label for="customer_name">
+                <i class="fas fa-user"></i> Full Name *
+              </label>
+              <input
+                type="text"
+                id="customer_name"
+                name="customer_name"
+                required
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div class="form-group">
+              <label for="customer_phone">
+                <i class="fas fa-phone"></i> Phone Number *
+              </label>
+              <input
+                type="tel"
+                id="customer_phone"
+                name="customer_phone"
+                required
+                placeholder="0812-3456-7890"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="customer_email">
+              <i class="fas fa-envelope"></i> Email Address
+            </label>
+            <input
+              type="email"
+              id="customer_email"
+              name="customer_email"
+              placeholder="your.email@example.com"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="shipping_address">
+              <i class="fas fa-map-marker-alt"></i> Shipping Address *
+            </label>
+            <textarea
+              id="shipping_address"
+              name="shipping_address"
+              required
+              placeholder="Enter complete shipping address including street, city, and postal code"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <!-- Payment Method Selection -->
+          <div class="payment-method-selection">
+            <h3><i class="fas fa-credit-card"></i> Select Payment Method</h3>
+
+            <div class="payment-options">
+              {% for method_code, method in payment_methods.items() %}
+              <label class="payment-option">
+                <input
+                  type="radio"
+                  name="payment_method"
+                  value="{{ method_code }}"
+                  required
+                  {%
+                  if
+                  loop.first
+                  %}checked{%
+                  endif
+                  %}
+                />
+                <div class="option-content">
+                  <div class="option-icon" style="color: {{ method.color }}">
+                    <i class="{{ method.icon }}"></i>
+                  </div>
+                  <div class="option-info">
+                    <div class="option-name">{{ method.name }}</div>
+                    <div class="option-desc">{{ method.description }}</div>
+                    {% if method.fee > 0 %}
+                    <div class="option-fee">
+                      <i class="fas fa-plus-circle"></i> Rp {{
+                      "{:,.0f}".format(method.fee) }} fee
+                    </div>
+                    {% endif %} {% if method_code == 'cod' and cod_available %}
+                    <div class="cod-warning">
+                      <i class="fas fa-exclamation-triangle"></i>
+                      Max Rp {{ "{:,.0f}".format(cod_max) }}
+                    </div>
+                    {% endif %}
+                  </div>
+                  <div class="option-check">
+                    <i class="fas fa-check-circle"></i>
+                  </div>
+                </div>
+              </label>
+              {% endfor %}
+            </div>
+
+            <!-- COD Warning -->
+            {% if not cod_available %}
+            <div class="cod-warning-card">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div>
+                <strong>COD Not Available</strong>
+                <p>
+                  Your order exceeds the COD maximum of Rp {{
+                  "{:,.0f}".format(cod_max) }}. Please choose another payment
+                  method.
+                </p>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Terms and Conditions -->
+          <div class="terms-section">
+            <label class="terms-checkbox">
+              <input type="checkbox" required />
+              <span
+                >I agree to the <a href="#">Terms and Conditions</a> and
+                <a href="#">Privacy Policy</a></span
+              >
+            </label>
+            <p class="terms-note">
+              By completing your purchase, you agree to our terms and authorize
+              us to charge your selected payment method.
+            </p>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="checkout-action">
+            <a href="{{ url_for('cart') }}" class="btn-back">
+              <i class="fas fa-arrow-left"></i> Back to Cart
+            </a>
+            <button type="submit" class="btn-continue-payment">
+              <i class="fas fa-lock"></i> Continue to Payment
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
 
-    <!-- Checkout Content -->
-    <div class="checkout-content">
-        <!-- Left Column: Customer Info & Payment -->
-        <div class="checkout-left">
-            <!-- Customer Information Form -->
-            <div class="customer-form-card">
-                <h2><i class="fas fa-user"></i> Customer Information</h2>
-                <form action="{{ url_for('checkout_details') }}" method="POST" id="checkoutForm">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="customer_name">
-                                <i class="fas fa-user"></i> Full Name *
-                            </label>
-                            <input type="text" id="customer_name" name="customer_name" required
-                                   placeholder="Enter your full name">
-                        </div>
-                        <div class="form-group">
-                            <label for="customer_phone">
-                                <i class="fas fa-phone"></i> Phone Number *
-                            </label>
-                            <input type="tel" id="customer_phone" name="customer_phone" required
-                                   placeholder="0812-3456-7890">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="customer_email">
-                            <i class="fas fa-envelope"></i> Email Address
-                        </label>
-                        <input type="email" id="customer_email" name="customer_email"
-                               placeholder="your.email@example.com">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="shipping_address">
-                            <i class="fas fa-map-marker-alt"></i> Shipping Address *
-                        </label>
-                        <textarea id="shipping_address" name="shipping_address" required
-                                  placeholder="Enter complete shipping address including street, city, and postal code"
-                                  rows="3"></textarea>
-                    </div>
-                    
-                    <!-- Payment Method Selection -->
-                    <div class="payment-method-selection">
-                        <h3><i class="fas fa-credit-card"></i> Select Payment Method</h3>
-                        
-                        <div class="payment-options">
-                            {% for method_code, method in payment_methods.items() %}
-                            <label class="payment-option">
-                                <input type="radio" name="payment_method" value="{{ method_code }}" required
-                                       {% if loop.first %}checked{% endif %}>
-                                <div class="option-content">
-                                    <div class="option-icon" style="color: {{ method.color }}">
-                                        <i class="{{ method.icon }}"></i>
-                                    </div>
-                                    <div class="option-info">
-                                        <div class="option-name">{{ method.name }}</div>
-                                        <div class="option-desc">{{ method.description }}</div>
-                                        {% if method.fee > 0 %}
-                                        <div class="option-fee">
-                                            <i class="fas fa-plus-circle"></i> Rp {{ "{:,.0f}".format(method.fee) }} fee
-                                        </div>
-                                        {% endif %}
-                                        {% if method_code == 'cod' and cod_available %}
-                                        <div class="cod-warning">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                            Max Rp {{ "{:,.0f}".format(cod_max) }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="option-check">
-                                        <i class="fas fa-check-circle"></i>
-                                    </div>
-                                </div>
-                            </label>
-                            {% endfor %}
-                        </div>
-                        
-                        <!-- COD Warning -->
-                        {% if not cod_available %}
-                        <div class="cod-warning-card">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <div>
-                                <strong>COD Not Available</strong>
-                                <p>Your order exceeds the COD maximum of Rp {{ "{:,.0f}".format(cod_max) }}. Please choose another payment method.</p>
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                    
-                    <!-- Terms and Conditions -->
-                    <div class="terms-section">
-                        <label class="terms-checkbox">
-                            <input type="checkbox" required>
-                            <span>I agree to the <a href="#">Terms and Conditions</a> and <a href="#">Privacy Policy</a></span>
-                        </label>
-                        <p class="terms-note">
-                            By completing your purchase, you agree to our terms and authorize us to charge your selected payment method.
-                        </p>
-                    </div>
-                    
-                    <!-- Submit Button -->
-                    <div class="checkout-action">
-                        <a href="{{ url_for('cart') }}" class="btn-back">
-                            <i class="fas fa-arrow-left"></i> Back to Cart
-                        </a>
-                        <button type="submit" class="btn-continue-payment">
-                            <i class="fas fa-lock"></i> Continue to Payment
-                        </button>
-                    </div>
-                </form>
+    <!-- Right Column: Order Summary -->
+    <div class="checkout-right">
+      <div class="order-summary-card">
+        <h3><i class="fas fa-shopping-cart"></i> Order Summary</h3>
+
+        <!-- Order Items -->
+        <div class="order-items">
+          {% for item in cart_items %}
+          <div class="order-item">
+            <div class="item-image"></div>
+            <div class="item-details">
+              <div class="item-title">
+                {{ item.title[:30] }}{% if item.title|length > 30 %}...{% endif
+                %}
+              </div>
+              <div class="item-meta">
+                <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                <span class="item-price"
+                  >Rp {{ "{:,.0f}".format(item.price_idr) }}</span
+                >
+              </div>
             </div>
+            <div class="item-subtotal">
+              Rp {{ "{:,.0f}".format(item.subtotal_idr) }}
+            </div>
+          </div>
+          {% endfor %}
         </div>
-        
-        <!-- Right Column: Order Summary -->
-        <div class="checkout-right">
-            <div class="order-summary-card">
-                <h3><i class="fas fa-shopping-cart"></i> Order Summary</h3>
-                
-                <!-- Order Items -->
-                <div class="order-items">
-                    {% for item in cart_items %}
-                    <div class="order-item">
-                        <div class="item-image">
-                        </div>
-                        <div class="item-details">
-                            <div class="item-title">{{ item.title[:30] }}{% if item.title|length > 30 %}...{% endif %}</div>
-                            <div class="item-meta">
-                                <span class="item-quantity">Qty: {{ item.quantity }}</span>
-                                <span class="item-price">Rp {{ "{:,.0f}".format(item.price_idr) }}</span>
-                            </div>
-                        </div>
-                        <div class="item-subtotal">
-                            Rp {{ "{:,.0f}".format(item.subtotal_idr) }}
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                <!-- Order Totals -->
-                <div class="order-totals">
-                    <div class="total-row">
-                        <span>Subtotal ({{ cart_count }} items):</span>
-                        <span>Rp {{ "{:,.0f}".format(total_price_idr) }}</span>
-                    </div>
-                    <div class="total-row">
-                        <span>Shipping:</span>
-                        <span class="free-shipping">FREE</span>
-                    </div>
-                    <div class="total-row">
-                        <span>Tax (10%):</span>
-                        <span>Rp {{ "{:,.0f}".format(total_price_idr * 0.1) }}</span>
-                    </div>
-                    
-                    <!-- Payment Fee Preview -->
-                    <div class="payment-fee-preview" id="paymentFeePreview">
-                        <!-- Dynamically updated based on payment method -->
-                    </div>
-                    
-                    <div class="total-row grand-total">
-                        <span>Total Amount:</span>
-                        <span id="totalAmountPreview">Rp {{ "{:,.0f}".format(total_price_idr * 1.1) }}</span>
-                    </div>
-                </div>
-                
-                <!-- Currency Info -->
-                <div class="currency-info">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Exchange rate: 1 USD = Rp 15,500</span>
-                </div>
-                
-                <!-- Delivery Estimate -->
-                <div class="delivery-estimate">
-                    <div class="delivery-icon">
-                        <i class="fas fa-shipping-fast"></i>
-                    </div>
-                    <div class="delivery-info">
-                        <strong>Estimated Delivery</strong>
-                        <p>3-5 business days</p>
-                    </div>
-                </div>
-                
-                <!-- Security Badge -->
-                <div class="security-badge">
-                    <i class="fas fa-shield-alt"></i>
-                    <div>
-                        <strong>Secure Checkout</strong>
-                        <p>Your payment information is encrypted</p>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Help Card -->
-            <div class="help-card">
-                <h4><i class="fas fa-question-circle"></i> Need Help?</h4>
-                <div class="help-options">
-                    <a href="#">
-                        <i class="fas fa-comment-dots"></i>
-                        <span>Live Chat</span>
-                    </a>
-                    <a href="tel:081234567890">
-                        <i class="fas fa-phone"></i>
-                        <span>Call Us</span>
-                    </a>
-                    <a href="#">
-                        <i class="fas fa-envelope"></i>
-                        <span>Email Support</span>
-                    </a>
-                </div>
-            </div>
+
+        <!-- Order Totals -->
+        <div class="order-totals">
+          <div class="total-row">
+            <span>Subtotal ({{ cart_count }} items):</span>
+            <span>Rp {{ "{:,.0f}".format(total_price_idr) }}</span>
+          </div>
+          <div class="total-row">
+            <span>Shipping:</span>
+            <span class="free-shipping">FREE</span>
+          </div>
+          <div class="total-row">
+            <span>Tax (10%):</span>
+            <span>Rp {{ "{:,.0f}".format(total_price_idr * 0.1) }}</span>
+          </div>
+
+          <!-- Payment Fee Preview -->
+          <div class="payment-fee-preview" id="paymentFeePreview">
+            <!-- Dynamically updated based on payment method -->
+          </div>
+
+          <div class="total-row grand-total">
+            <span>Total Amount:</span>
+            <span id="totalAmountPreview"
+              >Rp {{ "{:,.0f}".format(total_price_idr * 1.1) }}</span
+            >
+          </div>
         </div>
+
+        <!-- Currency Info -->
+        <div class="currency-info">
+          <i class="fas fa-exchange-alt"></i>
+          <span>Exchange rate: 1 USD = Rp 15,500</span>
+        </div>
+
+        <!-- Delivery Estimate -->
+        <div class="delivery-estimate">
+          <div class="delivery-icon">
+            <i class="fas fa-shipping-fast"></i>
+          </div>
+          <div class="delivery-info">
+            <strong>Estimated Delivery</strong>
+            <p>3-5 business days</p>
+          </div>
+        </div>
+
+        <!-- Security Badge -->
+        <div class="security-badge">
+          <i class="fas fa-shield-alt"></i>
+          <div>
+            <strong>Secure Checkout</strong>
+            <p>Your payment information is encrypted</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Help Card -->
+      <div class="help-card">
+        <h4><i class="fas fa-question-circle"></i> Need Help?</h4>
+        <div class="help-options">
+          <a href="#">
+            <i class="fas fa-comment-dots"></i>
+            <span>Live Chat</span>
+          </a>
+          <a href="tel:081234567890">
+            <i class="fas fa-phone"></i>
+            <span>Call Us</span>
+          </a>
+          <a href="#">
+            <i class="fas fa-envelope"></i>
+            <span>Email Support</span>
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
 <style>
-    /* Checkout Steps */
-    .checkout-steps {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 30px;
-        position: relative;
-    }
-    
-    .checkout-steps::before {
-        content: '';
-        position: absolute;
-        top: 20px;
-        left: 10%;
-        right: 10%;
-        height: 2px;
-        background: #f0f0f0;
-        z-index: 1;
-    }
-    
-    .step {
-        position: relative;
-        z-index: 2;
-        text-align: center;
-        flex: 1;
-    }
-    
-    .step-number {
-        width: 40px;
-        height: 40px;
-        background: #f0f0f0;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 10px;
-        font-weight: bold;
-        color: #666;
-        border: 3px solid white;
-    }
-    
-    .step.active .step-number {
-        background: #42b549;
-        color: white;
-    }
-    
-    .step-text {
-        font-size: 0.9rem;
-        color: #666;
-    }
-    
-    .step.active .step-text {
-        color: #42b549;
-        font-weight: bold;
-    }
-    
-    /* Checkout Content */
+  /* Checkout Steps */
+  .checkout-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+  }
+
+  .checkout-steps::before {
+    content: "";
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: #f0f0f0;
+    z-index: 1;
+  }
+
+  .step {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    flex: 1;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    background: #f0f0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-weight: bold;
+    color: #666;
+    border: 3px solid white;
+  }
+
+  .step.active .step-number {
+    background: #42b549;
+    color: white;
+  }
+
+  .step-text {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .step.active .step-text {
+    color: #42b549;
+    font-weight: bold;
+  }
+
+  /* Checkout Content */
+  .checkout-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+  }
+
+  @media (max-width: 992px) {
     .checkout-content {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 30px;
+      grid-template-columns: 1fr;
     }
-    
-    @media (max-width: 992px) {
-        .checkout-content {
-            grid-template-columns: 1fr;
-        }
-    }
-    
-    /* Customer Form Card */
-    .customer-form-card {
-        background: white;
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-    }
-    
-    .customer-form-card h2 {
-        margin-bottom: 25px;
-        color: #333;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
+  }
+
+  /* Customer Form Card */
+  .customer-form-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+  }
+
+  .customer-form-card h2 {
+    margin-bottom: 25px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 768px) {
     .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-    }
-    
-    @media (max-width: 768px) {
-        .form-row {
-            grid-template-columns: 1fr;
-        }
-    }
-    
-    .form-group {
-        margin-bottom: 20px;
-    }
-    
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: #555;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-        width: 100%;
-        padding: 12px 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 1rem;
-        transition: border-color 0.3s;
-    }
-    
-    .form-group input:focus,
-    .form-group textarea:focus,
-    .form-group select:focus {
-        border-color: #42b549;
-        outline: none;
-    }
-    
-    .form-group textarea {
-        resize: vertical;
-        min-height: 80px;
-    }
-    
-    /* Payment Method Selection */
-    .payment-method-selection {
-        margin: 30px 0;
-    }
-    
-    .payment-method-selection h3 {
-        margin-bottom: 20px;
-        color: #333;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .payment-options {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .payment-option {
-        border: 2px solid #f0f0f0;
-        border-radius: 8px;
-        padding: 15px;
-        cursor: pointer;
-        transition: all 0.3s;
-        position: relative;
-    }
-    
-    .payment-option:hover {
-        border-color: #42b549;
-        background: #f8fff8;
-    }
-    
-    .payment-option input[type="radio"] {
-        display: none;
-    }
-    
-    .payment-option input[type="radio"]:checked + .option-content {
-        border-color: #42b549;
-        background: #f0fff0;
-    }
-    
-    .payment-option input[type="radio"]:checked + .option-content .option-check {
-        opacity: 1;
-        color: #42b549;
-    }
-    
-    .option-content {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-    }
-    
-    .option-icon {
-        font-size: 2rem;
-        min-width: 40px;
-    }
-    
-    .option-info {
-        flex: 1;
-    }
-    
-    .option-name {
-        font-weight: bold;
-        margin-bottom: 5px;
-        color: #333;
-    }
-    
-    .option-desc {
-        font-size: 0.9rem;
-        color: #666;
-        margin-bottom: 5px;
-    }
-    
-    .option-fee {
-        font-size: 0.85rem;
-        color: #ff6b6b;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .cod-warning {
-        font-size: 0.85rem;
-        color: #e74c3c;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        margin-top: 5px;
-    }
-    
-    .option-check {
-        opacity: 0;
-        font-size: 1.5rem;
-        transition: opacity 0.3s;
-    }
-    
-    /* COD Warning Card */
-    .cod-warning-card {
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 8px;
-        padding: 15px;
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-        margin-top: 15px;
-    }
-    
-    .cod-warning-card i {
-        color: #e74c3c;
-        font-size: 1.5rem;
-        margin-top: 2px;
-    }
-    
-    /* Terms Section */
-    .terms-section {
-        margin: 30px 0;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 8px;
-    }
-    
-    .terms-checkbox {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        color: #555;
-    }
-    
-    .terms-checkbox input[type="checkbox"] {
-        margin-top: 3px;
-    }
-    
-    .terms-checkbox a {
-        color: #42b549;
-        text-decoration: none;
-    }
-    
-    .terms-checkbox a:hover {
-        text-decoration: underline;
-    }
-    
-    .terms-note {
-        font-size: 0.9rem;
-        color: #666;
-        margin: 0;
-    }
-    
-    /* Checkout Action */
-    .checkout-action {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 30px;
-        padding-top: 20px;
-        border-top: 1px solid #f0f0f0;
-    }
-    
-    .btn-back, .btn-continue-payment {
-        padding: 12px 30px;
-        border-radius: 8px;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.3s;
-    }
-    
-    .btn-back {
-        background: #f0f0f0;
-        color: #333;
-    }
-    
-    .btn-back:hover {
-        background: #e0e0e0;
-    }
-    
-    .btn-continue-payment {
-        background: linear-gradient(135deg, #42b549 0%, #2e7d32 100%);
-        color: white;
-        border: none;
-        cursor: pointer;
-        font-size: 1.1rem;
-    }
-    
-    .btn-continue-payment:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(66, 181, 73, 0.3);
-    }
-    
-    /* Order Summary Card */
-    .order-summary-card {
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-        position: sticky;
-        top: 20px;
-    }
-    
-    .order-summary-card h3 {
-        margin-bottom: 20px;
-        color: #333;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .order-items {
-        max-height: 300px;
-        overflow-y: auto;
-        margin-bottom: 20px;
-        padding-right: 10px;
-    }
-    
-    .order-items::-webkit-scrollbar {
-        width: 5px;
-    }
-    
-    .order-items::-webkit-scrollbar-thumb {
-        background: #ddd;
-        border-radius: 3px;
-    }
-    
-    .order-item {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 15px;
-        padding: 15px 0;
-        border-bottom: 1px solid #f0f0f0;
-        align-items: center;
-    }
-    
-    .order-item:last-child {
-        border-bottom: none;
-    }
-    
-    .item-image img {
-        width: 50px;
-        height: 50px;
-        object-fit: contain;
-        border-radius: 6px;
-        border: 1px solid #eee;
-    }
-    
-    .item-details {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .item-title {
-        font-size: 0.9rem;
-        color: #333;
-        line-height: 1.3;
-    }
-    
-    .item-meta {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.85rem;
-        color: #666;
-    }
-    
-    .item-subtotal {
-        font-weight: 600;
-        color: #333;
-        min-width: 80px;
-        text-align: right;
-    }
-    
-    /* Order Totals */
-    .order-totals {
-        margin: 20px 0;
-        padding: 20px 0;
-        border-top: 2px solid #f0f0f0;
-        border-bottom: 2px solid #f0f0f0;
-    }
-    
-    .total-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 10px;
-        color: #666;
-    }
-    
-    .total-row.grand-total {
-        font-size: 1.3rem;
-        font-weight: bold;
-        color: #42b549;
-        margin-top: 15px;
-    }
-    
-    .free-shipping {
-        color: #42b549;
-        font-weight: bold;
-    }
-    
-    .payment-fee-preview {
-        margin: 10px 0;
-        padding: 10px;
-        background: #f8f9fa;
-        border-radius: 6px;
-        font-size: 0.9rem;
-    }
-    
-    /* Currency Info */
-    .currency-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        color: #666;
-        font-size: 0.9rem;
-        margin: 15px 0;
-    }
-    
-    /* Delivery Estimate */
-    .delivery-estimate {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 15px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        margin: 20px 0;
-    }
-    
-    .delivery-icon i {
-        font-size: 1.5rem;
-        color: #42b549;
-    }
-    
-    .delivery-info strong {
-        display: block;
-        margin-bottom: 5px;
-        color: #333;
-    }
-    
-    .delivery-info p {
-        margin: 0;
-        color: #666;
-        font-size: 0.9rem;
-    }
-    
-    /* Security Badge */
-    .security-badge {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 15px;
-        background: #e8f5e9;
-        border-radius: 8px;
-        margin: 20px 0;
-    }
-    
-    .security-badge i {
-        font-size: 1.5rem;
-        color: #42b549;
-    }
-    
-    /* Help Card */
-    .help-card {
-        margin-top: 20px;
-        padding: 20px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 3px 15px rgba(0,0,0,0.08);
-    }
-    
-    .help-card h4 {
-        margin-bottom: 15px;
-        color: #333;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .help-options {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .help-options a {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 12px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        color: #333;
-        text-decoration: none;
-        transition: background 0.3s;
-    }
-    
-    .help-options a:hover {
-        background: #e9ecef;
-        color: #42b549;
-    }
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+  }
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: #42b549;
+    outline: none;
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  /* Payment Method Selection */
+  .payment-method-selection {
+    margin: 30px 0;
+  }
+
+  .payment-method-selection h3 {
+    margin-bottom: 20px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .payment-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .payment-option {
+    border: 2px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+  }
+
+  .payment-option:hover {
+    border-color: #42b549;
+    background: #f8fff8;
+  }
+
+  .payment-option input[type="radio"] {
+    display: none;
+  }
+
+  .payment-option input[type="radio"]:checked + .option-content {
+    border-color: #42b549;
+    background: #f0fff0;
+  }
+
+  .payment-option input[type="radio"]:checked + .option-content .option-check {
+    opacity: 1;
+    color: #42b549;
+  }
+
+  .option-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  .option-icon {
+    font-size: 2rem;
+    min-width: 40px;
+  }
+
+  .option-info {
+    flex: 1;
+  }
+
+  .option-name {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333;
+  }
+
+  .option-desc {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 5px;
+  }
+
+  .option-fee {
+    font-size: 0.85rem;
+    color: #ff6b6b;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .cod-warning {
+    font-size: 0.85rem;
+    color: #e74c3c;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
+  }
+
+  .option-check {
+    opacity: 0;
+    font-size: 1.5rem;
+    transition: opacity 0.3s;
+  }
+
+  /* COD Warning Card */
+  .cod-warning-card {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-top: 15px;
+  }
+
+  .cod-warning-card i {
+    color: #e74c3c;
+    font-size: 1.5rem;
+    margin-top: 2px;
+  }
+
+  /* Terms Section */
+  .terms-section {
+    margin: 30px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .terms-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: #555;
+  }
+
+  .terms-checkbox input[type="checkbox"] {
+    margin-top: 3px;
+  }
+
+  .terms-checkbox a {
+    color: #42b549;
+    text-decoration: none;
+  }
+
+  .terms-checkbox a:hover {
+    text-decoration: underline;
+  }
+
+  .terms-note {
+    font-size: 0.9rem;
+    color: #666;
+    margin: 0;
+  }
+
+  /* Checkout Action */
+  .checkout-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .btn-back,
+  .btn-continue-payment {
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s;
+  }
+
+  .btn-back {
+    background: #f0f0f0;
+    color: #333;
+  }
+
+  .btn-back:hover {
+    background: #e0e0e0;
+  }
+
+  .btn-continue-payment {
+    background: linear-gradient(135deg, #42b549 0%, #2e7d32 100%);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+  }
+
+  .btn-continue-payment:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(66, 181, 73, 0.3);
+  }
+
+  /* Order Summary Card */
+  .order-summary-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+    position: sticky;
+    top: 20px;
+  }
+
+  .order-summary-card h3 {
+    margin-bottom: 20px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .order-items {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    padding-right: 10px;
+  }
+
+  .order-items::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .order-items::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 3px;
+  }
+
+  .order-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 15px;
+    padding: 15px 0;
+    border-bottom: 1px solid #f0f0f0;
+    align-items: center;
+  }
+
+  .order-item:last-child {
+    border-bottom: none;
+  }
+
+  .item-image img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: 6px;
+    border: 1px solid #eee;
+  }
+
+  .item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .item-title {
+    font-size: 0.9rem;
+    color: #333;
+    line-height: 1.3;
+  }
+
+  .item-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #666;
+  }
+
+  .item-subtotal {
+    font-weight: 600;
+    color: #333;
+    min-width: 80px;
+    text-align: right;
+  }
+
+  /* Order Totals */
+  .order-totals {
+    margin: 20px 0;
+    padding: 20px 0;
+    border-top: 2px solid #f0f0f0;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #666;
+  }
+
+  .total-row.grand-total {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #42b549;
+    margin-top: 15px;
+  }
+
+  .free-shipping {
+    color: #42b549;
+    font-weight: bold;
+  }
+
+  .payment-fee-preview {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+
+  /* Currency Info */
+  .currency-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #666;
+    font-size: 0.9rem;
+    margin: 15px 0;
+  }
+
+  /* Delivery Estimate */
+  .delivery-estimate {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+
+  .delivery-icon i {
+    font-size: 1.5rem;
+    color: #42b549;
+  }
+
+  .delivery-info strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+  }
+
+  .delivery-info p {
+    margin: 0;
+    color: #666;
+    font-size: 0.9rem;
+  }
+
+  /* Security Badge */
+  .security-badge {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: #e8f5e9;
+    border-radius: 8px;
+    margin: 20px 0;
+  }
+
+  .security-badge i {
+    font-size: 1.5rem;
+    color: #42b549;
+  }
+
+  /* Help Card */
+  .help-card {
+    margin-top: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+  }
+
+  .help-card h4 {
+    margin-bottom: 15px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .help-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .help-options a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    color: #333;
+    text-decoration: none;
+    transition: background 0.3s;
+  }
+
+  .help-options a:hover {
+    background: #e9ecef;
+    color: #42b549;
+  }
 </style>
 
 <script>
-    // Payment method selection
-    document.addEventListener('DOMContentLoaded', function() {
-        const paymentOptions = document.querySelectorAll('.payment-option');
-        const paymentFeePreview = document.getElementById('paymentFeePreview');
-        const totalAmountPreview = document.getElementById('totalAmountPreview');
-        
-        // Payment methods data
-        const paymentMethods = {{ payment_methods|tojson }};
-        const baseTotal = {{ total_price_idr * 1.1 }};
-        
-        function updatePaymentPreview(method) {
-            const methodData = paymentMethods[method];
-            const fee = methodData.fee || 0;
-            const total = baseTotal + fee;
-            
-            if (fee > 0) {
-                paymentFeePreview.innerHTML = `
-                    <div class="total-row">
-                        <span>${methodData.name} Fee:</span>
-                        <span style="color: #ff6b6b;">+ Rp ${fee.toLocaleString('id-ID')}</span>
-                    </div>
-                `;
-            } else {
-                paymentFeePreview.innerHTML = '';
-            }
-            
-            totalAmountPreview.textContent = `Rp ${total.toLocaleString('id-ID')}`;
-        }
-        
-        // Initial update
-        updatePaymentPreview(document.querySelector('input[name="payment_method"]:checked').value);
-        
-        // Add event listeners
-        paymentOptions.forEach(option => {
-            const radio = option.querySelector('input[type="radio"]');
-            radio.addEventListener('change', function() {
-                updatePaymentPreview(this.value);
-                
-                // Update selected state
-                paymentOptions.forEach(opt => {
-                    opt.style.borderColor = '#f0f0f0';
-                    opt.style.background = 'white';
-                });
-                option.style.borderColor = '#42b549';
-                option.style.background = '#f0fff0';
-            });
-        });
-        
-        // Phone number formatting
-        const phoneInput = document.getElementById('customer_phone');
-        if (phoneInput) {
-            phoneInput.addEventListener('input', function(e) {
-                let value = e.target.value.replace(/\D/g, '');
-                if (value.length > 0) {
-                    value = value.match(/.{1,4}/g).join('-');
-                }
-                e.target.value = value;
-            });
-        }
-        
-        // Form validation
-        const form = document.getElementById('checkoutForm');
-        form.addEventListener('submit', function(e) {
-            const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
-            const codMax = {{ cod_max }};
-            const totalAmount = baseTotal + (paymentMethods[selectedMethod].fee || 0);
-            
-            if (selectedMethod === 'cod' && totalAmount > codMax) {
-                e.preventDefault();
-                alert(`COD maximum amount is Rp ${codMax.toLocaleString('id-ID')}. Please choose another payment method.`);
-                return false;
-            }
-        });
-    });
+  // Payment method selection
+  document.addEventListener('DOMContentLoaded', function() {
+      const paymentOptions = document.querySelectorAll('.payment-option');
+      const paymentFeePreview = document.getElementById('paymentFeePreview');
+      const totalAmountPreview = document.getElementById('totalAmountPreview');
+
+      // Payment methods data
+      const paymentMethods = {{ payment_methods|tojson }};
+      const baseTotal = {{ total_price_idr * 1.1 }};
+
+      function updatePaymentPreview(method) {
+          const methodData = paymentMethods[method];
+          const fee = methodData.fee || 0;
+          const total = baseTotal + fee;
+
+          if (fee > 0) {
+              paymentFeePreview.innerHTML = `
+                  <div class="total-row">
+                      <span>${methodData.name} Fee:</span>
+                      <span style="color: #ff6b6b;">+ Rp ${fee.toLocaleString('id-ID')}</span>
+                  </div>
+              `;
+          } else {
+              paymentFeePreview.innerHTML = '';
+          }
+
+          totalAmountPreview.textContent = `Rp ${total.toLocaleString('id-ID')}`;
+      }
+
+      // Initial update
+      updatePaymentPreview(document.querySelector('input[name="payment_method"]:checked').value);
+
+      // Add event listeners
+      paymentOptions.forEach(option => {
+          const radio = option.querySelector('input[type="radio"]');
+          radio.addEventListener('change', function() {
+              updatePaymentPreview(this.value);
+
+              // Update selected state
+              paymentOptions.forEach(opt => {
+                  opt.style.borderColor = '#f0f0f0';
+                  opt.style.background = 'white';
+              });
+              option.style.borderColor = '#42b549';
+              option.style.background = '#f0fff0';
+          });
+      });
+
+      // Phone number formatting
+      const phoneInput = document.getElementById('customer_phone');
+      if (phoneInput) {
+          phoneInput.addEventListener('input', function(e) {
+              let value = e.target.value.replace(/\D/g, '');
+              if (value.length > 0) {
+                  value = value.match(/.{1,4}/g).join('-');
+              }
+              e.target.value = value;
+          });
+      }
+
+      // Form validation
+      const form = document.getElementById('checkoutForm');
+      form.addEventListener('submit', function(e) {
+          const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
+          const codMax = {{ cod_max }};
+          const totalAmount = baseTotal + (paymentMethods[selectedMethod].fee || 0);
+
+          if (selectedMethod === 'cod' && totalAmount > codMax) {
+              e.preventDefault();
+              alert(`COD maximum amount is Rp ${codMax.toLocaleString('id-ID')}. Please choose another payment method.`);
+              return false;
+          }
+      });
+  });
 </script>
 {% endblock %}
